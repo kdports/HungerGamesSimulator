@@ -8,10 +8,10 @@ class GameManager():
 if __name__ == "__main__":
     game_manager = GameManager()
     while True:
-        task = input("Welcome to the Hunger Games Simulator.\nType and enter N to create a new game, or L to load a game.")
-        if task.capitalize() == "N":
+        task = input("Welcome to the Hunger Games Simulator.\nType and enter N to create a new game, or L to load a game: ")
+        if task.upper() == "N":
             game_manager.NewGame()
-        elif task.capitalize() == "L":
+        elif task.upper() == "L":
             pass
         else:
             print("Invalid entry. Please try again.\n")

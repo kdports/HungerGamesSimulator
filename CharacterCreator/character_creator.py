@@ -36,7 +36,7 @@ def MakeJSONDict(nid, name, skills, strategies, alliances):
     return json.dumps(character_dict)
 
 def MakeCharacterFolder():
-    current_dirname = os.path.dirname(__file__)
+    current_dirname = os.getcwd()
     characters_folder = os.path.join(current_dirname, "characters/")
     if not os.path.exists(characters_folder):
         os.makedirs(characters_folder)
@@ -111,5 +111,5 @@ while build_character_mode:
     print("Saving complete! Written to character/" + nid.lower() + "\n\n")
 
     make_new = input("Create another character? Type Yes to restart character creation: ")
-    if make_new.capitalize() != "YES":
+    if make_new.upper() != "YES":
         build_character_mode = 0
