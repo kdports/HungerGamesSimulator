@@ -48,6 +48,9 @@ class Character:
     def get_strategy(self, strategy_name):
         return self.strategies.get(strategy_name, 0)
     
+    def get_alliances(self):
+        return self.alliances
+    
     def increment_hunger_state(self):
         # Will wrap around if increments off last value - should be handled in the game manager though
         self.hunger_state = (self.hunger_state.value + 1) % len(HungerState)
