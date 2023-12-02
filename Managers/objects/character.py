@@ -29,6 +29,8 @@ class Character:
         self.medicine = []
         self.food = []
 
+        self.position = None
+
         self.hunger_state = HungerState.FULL
 
     def reset_body(self):
@@ -53,10 +55,23 @@ class Character:
     def load_json_file(self, file_name):
         with open(file_name, 'r') as openfile:
             character_json = json.load(openfile)
+            self.load_json_object(character_json)
             
     def load_json_object(self, json_obj):
         self.nid = json_obj["nid"]
         self.name = json_obj["name"]
+        self.position = json_obj.get("position", None)
         self.skills = json_obj.get("skills", {})
         self.alliances = json_obj.get("alliances", [])
         self.strategies = json_obj.get("strategies", {})
+
+    def save(self):
+        save_dict = {
+            "nid": self.nid,
+            "name": self.name,
+            "position": self.position,
+            "skills": self.skills,
+            "alliances": self.alliances,
+            "strategies": self.strategies
+        }
+        return save_dict
