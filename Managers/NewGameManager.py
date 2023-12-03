@@ -15,10 +15,13 @@ class NewGameManager():
         # Load items: TODO
         # Generate map: TODO
 
+        seed = int(input("Enter an integer to act as a game seed: "))
+
         print("Setup complete! Now saving...")
         game_dict = {
             "nid": nid,
-            "characters": character_dict
+            "characters": character_dict,
+            "seed": seed
         }
 
         current_dirname = os.getcwd()

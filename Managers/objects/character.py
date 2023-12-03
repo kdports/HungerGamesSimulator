@@ -78,3 +78,7 @@ class Character:
             "strategies": self.strategies
         }
         return save_dict
+    
+    # TODO - Factor in items/injuries
+    def combat_bonus(self):
+        return 0
