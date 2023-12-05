@@ -3,16 +3,18 @@ import glob
 import json
 import re
 import time
-from typing import List
+from typing import Dict, List
 
 from Managers.objects.character import Character
 from pathlib import Path
+
+from Managers.objects.item import Item
 
 class NewGameManager():
     def NewGameController(self):
         nid = self.AssignGameName()
         character_dict = self.NewGameAddCharacters()
-        # Load items: TODO
+        item_dict = self.NewGameAddItems()
         # Generate map: TODO
 
         seed = int(input("Enter an integer to act as a game seed: "))
@@ -21,6 +23,7 @@ class NewGameManager():
         game_dict = {
             "nid": nid,
             "characters": character_dict,
+            "items": item_dict,
             "seed": seed
         }
 
@@ -62,6 +65,32 @@ class NewGameManager():
         except:
             print("An error occurred while loading your character.\nPlease ensure your character has a name and nid.\n")
         return None
+    
+    def LoadItem(self, file_name):
+        try:
+            new_item = Item()
+            with open(file_name, 'r') as item_file:
+                item_json = json.load(item_file)
+                new_item.load_json_object(item_json)
+            return new_item
+        except:
+            print("An error occurred while loading your character.\nPlease ensure your character has a name and nid.\n")
+        return None            
+    
+    def NewGameAddItems(self):
+        item_dict: Dict[str, Item] = {}
+
+        print("It is time to load an item dictionary.\nYour current directory and its subfolders will be recursively searched\nfor item sheets.")
+        time.sleep(3)
+        # item_folder = str(input("Please specify a folder path. All item json files in this folder,\nor it's subdirectories, will be loaded.\n"))
+        
+        current_dirname = os.getcwd()
+        for file in Path(current_dirname).rglob("*_item_sheet.json"):
+            item = self.LoadItem(file)
+            if item is not None:
+                item_dict[item.nid] = item
+
+        return item_dict
 
     def NewGameAddCharacters(self):
         finished = 0

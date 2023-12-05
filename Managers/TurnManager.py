@@ -16,6 +16,7 @@ class TurnManager():
     def LoadJSONData(self, data: dict):
         self.board = data.get("board", [])
         self.characters = self.LoadCharacterData(data["characters"])
+        self.items = self.LoadItemData(data["items"])
 
         self.seed = data.get("seed", 0)
         static_random.set_seed(self.seed)
@@ -28,6 +29,14 @@ class TurnManager():
             new_character.load_json_object(char_data[char_nid])
             char_dict[new_character.nid] = new_character
         return char_dict
+
+    def LoadItemData(self, item_data: dict):
+        item_dict = {}
+        for item_nid in item_data.keys():
+            new_item = Item()
+            new_item.load_json_object(item_data[item_nid])
+            item_dict[new_item.nid] = new_item
+        return item_dict
 
     def IsCharacterInTeam(self, char_nid):
         for team in self.teams:
