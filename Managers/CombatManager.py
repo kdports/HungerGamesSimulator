@@ -38,7 +38,6 @@ class CombatManager():
             loser = self.team1
 
         self.combat_over(winner, loser)
-        return (winner, loser)
 
     def combat_over(self, winner, loser):
         # Write text here

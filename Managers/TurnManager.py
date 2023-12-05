@@ -1,23 +1,33 @@
-from typing import List
+from typing import List, Dict
 from Managers.objects.character import Character
+from Managers.objects.item import Item
 from Managers.objects.team import Team
 from utilities import static_random
 
 class TurnManager():
     def __init__(self) -> None:
         self.board = []
-        self.characters: List[Character] = {}
+        self.characters: Dict[str, Character] = {}
+        self.items: Dict[str, Item] = {}
         self.teams: List[Team] = []
         self.seed = 0
         # TODO: self.modifiers
 
     def LoadJSONData(self, data: dict):
         self.board = data.get("board", [])
-        self.characters = data["characters"]
+        self.characters = self.LoadCharacterData(data["characters"])
 
         self.seed = data.get("seed", 0)
         static_random.set_seed(self.seed)
         self.BuildAlliances()
+
+    def LoadCharacterData(self, char_data: dict):
+        char_dict = {}
+        for char_nid in char_data.keys():
+            new_character = Character()
+            new_character.load_json_object(char_data[char_nid])
+            char_dict[new_character.nid] = new_character
+        return char_dict
 
     def IsCharacterInTeam(self, char_nid):
         for team in self.teams:
