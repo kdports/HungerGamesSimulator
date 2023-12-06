@@ -88,7 +88,7 @@ class NewGameManager():
         for file in Path(current_dirname).rglob("*_item_sheet.json"):
             item = self.LoadItem(file)
             if item is not None:
-                item_dict[item.nid] = item
+                item_dict[item.nid] = item.save()
 
         return item_dict
 
