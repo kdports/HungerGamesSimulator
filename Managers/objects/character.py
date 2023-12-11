@@ -79,6 +79,33 @@ class Character:
         }
         return save_dict
     
-    # TODO - Factor in items/injuries
+    # TODO - Factor in items
     def combat_bonus(self):
-        return 0
+        combat_skill = self.skills.get("Combat Skill", 0)
+        combat_skill *= self.injury_multiplier()
+        return combat_skill
+    
+    def injury_multiplier_inverter(self, limb_state: LimbHealthState):
+        INJURED_EFFECT = 0.66
+        DISABLED_EFFECT = 0.33
+        if limb_state == LimbHealthState.HEALTHY:
+            return 1
+        elif limb_state == LimbHealthState.INJURED:
+            return INJURED_EFFECT
+        return DISABLED_EFFECT
+    
+    def hunger_combat_multiplier(self, hunger_state: HungerState):
+        MULTIPLIER = 1/3
+        return 1 - (max(hunger_state - 1, 0) * MULTIPLIER)
+
+    '''
+    Injuries decrease
+    Hunger decreases
+    '''
+    def injury_multiplier(self):
+        multiplier = 1
+        for limb in self.body:
+            multiplier *= self.injury_multiplier_inverter(limb)
+        multiplier *= self.hunger_combat_multiplier(self.hunger_state)
+        return multiplier
+        
