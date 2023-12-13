@@ -25,3 +25,6 @@ class Item():
             "hands_needed": self.hands_needed
         }
         return save_dict
+    
+    def get_combat_modifier(self) -> int:
+        return self.combat_modifier

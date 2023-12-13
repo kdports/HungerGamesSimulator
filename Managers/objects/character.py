@@ -1,6 +1,8 @@
 from enum import Enum
 import json
 
+from Managers.objects.item import Item
+
 class LimbHealthState(Enum):
     HEALTHY = 0
     INJURED = 1
@@ -32,6 +34,9 @@ class Character:
         self.position = None
 
         self.hunger_state = HungerState.FULL
+
+        self.left_hand_weapon: Item = None
+        self.right_hand_weapon: Item = None
 
     def reset_body(self):
         self.body = {
@@ -79,9 +84,21 @@ class Character:
         }
         return save_dict
     
-    # TODO - Factor in items
+    '''
+    Outta get called whenever someone gets an item
+    '''
+    def equip_item(self, item: Item):
+        if not self.left_hand_weapon or self.left_hand_weapon.get_combat_modifier() < item.get_combat_modifier():
+            self.left_hand_weapon = item
+            return
+        if not self.right_hand_weapon or self.right_hand_weapon.get_combat_modifier() < item.get_combat_modifier():
+            self.right_hand_weapon = item
+            return
+    
     def combat_bonus(self):
         combat_skill = self.skills.get("Combat Skill", 0)
+        combat_skill += self.left_hand_weapon.get_combat_modifier()
+        combat_skill += self.right_hand_weapon.get_combat_modifier()
         combat_skill *= self.injury_multiplier()
         return combat_skill
     
