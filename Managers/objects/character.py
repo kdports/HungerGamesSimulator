@@ -1,5 +1,6 @@
 from enum import Enum
 import json
+from typing import List
 
 from Managers.objects.item import Item
 from Managers.objects.skills import Skill
@@ -73,6 +74,9 @@ class Character:
     
     def get_alliances(self):
         return self.alliances
+    
+    def set_alliances(self, allies: List[str]):
+        self.alliances = allies
     
     def increment_hunger_state(self):
         # Will wrap around if increments off last value - should be handled in the game manager though

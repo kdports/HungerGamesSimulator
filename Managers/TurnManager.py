@@ -3,6 +3,7 @@ from Managers.objects.character import Character
 from Managers.objects.item import Item
 from Managers.objects.team import Team
 from utilities import static_random
+from helper_functions import CharacterFunctions
 
 class TurnManager():
     def __init__(self) -> None:
@@ -40,22 +41,36 @@ class TurnManager():
 
     def IsCharacterInTeam(self, char_nid):
         for team in self.teams:
-            if char_nid in team:
+            if char_nid in team and len(team) > 1:
                 return True
         return False
 
+    def GetCharacter(self, char_nid):
+        return self.characters[char_nid]
+
+    def CalculateTrueAllies(self):
+        for char_nid in self.characters:
+            char = self.GetCharacter(char_nid)
+            true_allies = []
+            for prospective_ally_nid in char.get_alliances():
+                if char.nid in self.characters[prospective_ally_nid].get_alliances():
+                    true_allies.append(prospective_ally_nid)
+            char.set_alliances(true_allies)
+
     def BuildAlliances(self):
-        for char in self.characters:
+        self.CalculateTrueAllies()
+
+        for char_nid in self.characters:
+            char = self.GetCharacter(char_nid)
             # You can't be in multiple teams
             if self.IsCharacterInTeam(char):
                 continue
 
-            # Needs to be seriously reworked/TODO
-            desired_allies = char.get_alliances()
-            confirmed_allies = []
-            for prospective_ally in desired_allies:
-                if char.nid in prospective_ally.get_alliances():
-                    confirmed_allies.append(prospective_ally.nid)
+            for team in self.teams:
+                if CharacterFunctions.ResolveCharacterEnteringTeam(char):
+                    team.add_player(char_nid)
+                    break
+            self.PurgeEmptyTeams()
 
     def KillCharacter(self, nid):
         for team in self.teams:
@@ -66,3 +81,5 @@ class TurnManager():
         for team in self.teams:
             if len(team) == 0:
                 self.teams.remove(team)
+
+turn = TurnManager()

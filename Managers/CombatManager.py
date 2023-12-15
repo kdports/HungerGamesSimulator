@@ -80,6 +80,7 @@ class CombatManager():
             team2_rolls = [static_random.get_combat() + char.combat_bonus() for char in self.team2]
             team2_best = max(team2_rolls)
 
+            # TODO: Should we apply injuries as the combat progresses? Or at the end?
             if team1_best > team2_best:
                 team1_wins += 1
             elif team1_best < team2_best:
