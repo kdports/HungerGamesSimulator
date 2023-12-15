@@ -1,9 +1,13 @@
 from typing import List, Dict
 from Managers.objects.character import Character
 from Managers.objects.item import Item
-from Managers.objects.team import Team
 from utilities import static_random
-from helper_functions import CharacterFunctions
+from Managers.helper_functions import CharacterFunctions
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from Managers.objects.team import Team
 
 class TurnManager():
     def __init__(self) -> None:
@@ -12,16 +16,34 @@ class TurnManager():
         self.items: Dict[str, Item] = {}
         self.teams: List[Team] = []
         self.seed = 0
-        # TODO: self.modifiers
+        # TODO: Make this actually do something
+        self.modifiers = []
+
+    # Step 1 of turn
+    def StartTurn(self, data: dict):
+        self.LoadJSONData(data)
+        static_random.set_seed(self.seed)
+        self.BuildAlliances()
+        self.MakeSinglePersonTeams()
 
     def LoadJSONData(self, data: dict):
         self.board = data.get("board", [])
         self.characters = self.LoadCharacterData(data["characters"])
         self.items = self.LoadItemData(data["items"])
-
+        self.teams = data.get("teams", [])
         self.seed = data.get("seed", 0)
-        static_random.set_seed(self.seed)
-        self.BuildAlliances()
+
+    def SaveJSONData(self):
+        data = {}
+        data["board"] = self.board
+        data["characters"] = self.characters
+        data["items"] = self.items
+        data["seed"] = self.seed
+        return data
+
+    # Step 2 of turn
+    def RandomizeTeamActionOrder(self):
+        self.teams = static_random.shuffle(self.teams)
 
     def LoadCharacterData(self, char_data: dict):
         char_dict = {}
@@ -41,7 +63,7 @@ class TurnManager():
 
     def IsCharacterInTeam(self, char_nid):
         for team in self.teams:
-            if char_nid in team and len(team) > 1:
+            if char_nid in team:
                 return True
         return False
 
@@ -63,7 +85,7 @@ class TurnManager():
         for char_nid in self.characters:
             char = self.GetCharacter(char_nid)
             # You can't be in multiple teams
-            if self.IsCharacterInTeam(char):
+            if self.IsCharacterInTeam(char_nid):
                 continue
 
             for team in self.teams:
@@ -71,6 +93,11 @@ class TurnManager():
                     team.add_player(char_nid)
                     break
             self.PurgeEmptyTeams()
+
+    def MakeSinglePersonTeams(self):
+        for char_nid in self.characters:
+            if not self.IsCharacterInTeam(char_nid):
+                self.teams.append(CharacterFunctions.MakeSinglePersonTeam(char_nid))
 
     def KillCharacter(self, nid):
         for team in self.teams:
@@ -83,3 +110,7 @@ class TurnManager():
                 self.teams.remove(team)
 
 turn = TurnManager()
+
+def make_turn_manager():
+    global turn
+    return turn

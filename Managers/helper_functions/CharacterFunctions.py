@@ -41,5 +41,9 @@ def ResolveCharacterEnteringTeam(char: Character, team: Team):
             return True
     return False
 
+def MakeSinglePersonTeam(char_nid: str):
+    team = Team([char_nid])
+    return team
+
 def GetCharacterCombatRating(char: Character) -> int:
     return char.combat_bonus()

@@ -1,4 +1,5 @@
 from Managers.NewGameManager import NewGameManager
+from Managers import TurnManager
 
 class GameManager():
     def NewGame(self):
@@ -12,6 +13,7 @@ if __name__ == "__main__":
         if task.upper() == "N":
             game_manager.NewGame()
         elif task.upper() == "L":
+            turn_manager = TurnManager.make_turn_manager()
             pass
         else:
             print("Invalid entry. Please try again.\n")
