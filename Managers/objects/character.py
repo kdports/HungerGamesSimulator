@@ -2,6 +2,24 @@ from enum import Enum
 import json
 
 from Managers.objects.item import Item
+from Managers.objects.skills import Skill
+from Managers.objects.strategies import Strategy
+
+'''
+Currently Implemented Strategies:
+Friendly
+Trustworthy
+Aggressive
+Commanding
+'''
+
+'''
+Currently Implemented Skills:
+Combat Skill
+Medical Skill
+Survival Skill
+Endurance Skill
+'''
 
 class LimbHealthState(Enum):
     HEALTHY = 0
@@ -47,11 +65,11 @@ class Character:
             "legs": LimbHealthState.HEALTHY
         }
 
-    def get_skill(self, skill_name):
-        return self.skills.get(skill_name, 0)
+    def get_skill(self, skill: Skill):
+        return self.skills.get(skill.value, 0)
 
-    def get_strategy(self, strategy_name):
-        return self.strategies.get(strategy_name, 0)
+    def get_strategy(self, strategy: Strategy):
+        return self.strategies.get(strategy.value, 0)
     
     def get_alliances(self):
         return self.alliances
@@ -96,7 +114,7 @@ class Character:
             return
     
     def combat_bonus(self):
-        combat_skill = self.skills.get("Combat Skill", 0)
+        combat_skill = self.skills.get(Skill.CombatSkill, 0)
         combat_skill += self.left_hand_weapon.get_combat_modifier()
         combat_skill += self.right_hand_weapon.get_combat_modifier()
         combat_skill *= self.injury_multiplier()
@@ -113,7 +131,10 @@ class Character:
     
     def hunger_combat_multiplier(self, hunger_state: HungerState):
         MULTIPLIER = 1/3
-        return 1 - (max(hunger_state - 1, 0) * MULTIPLIER)
+        return max(1 - (max(self.endurance_hunger_effect(hunger_state) - 1, 0) * MULTIPLIER), 0)
+    
+    def endurance_hunger_effect(self, hunger_state: HungerState) -> HungerState:
+        return max(0, hunger_state - self.get_skill(Skill.EnduranceSkill))
 
     '''
     Injuries decrease

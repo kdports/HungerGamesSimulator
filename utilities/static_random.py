@@ -59,6 +59,9 @@ def get_combat():
 def get_randint(a, b):
     return r.combat_random.randint(a, b)
 
+def fiftyfifty():
+    return r.combat_random.randint(1, 2) == 1
+
 def get_generator(offset: int):
     return LCG(offset * 1024 + r.seed)
 

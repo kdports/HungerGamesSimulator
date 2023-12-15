@@ -1,6 +1,11 @@
+from typing import List
 from Managers.objects.character import Character
 from Managers.objects.team import Team
+from utilities import static_random
 
+'''
+More positive = better for team1
+'''
 def CompareTeams(team1: Team, team2: Team):
     team1_sum = 0
     team2_sum = 0
