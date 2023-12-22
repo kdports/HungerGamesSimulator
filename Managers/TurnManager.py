@@ -28,6 +28,10 @@ class TurnManager():
         self.BuildAlliances()
         self.MakeSinglePersonTeams()
 
+    # Step 2 of turn
+    def RandomizeTeamActionOrder(self):
+        self.teams = static_random.shuffle(self.teams)
+
     def LoadJSONData(self, data: dict):
         self.board = data.get("board", [])
         self.characters = self.LoadCharacterData(data["characters"])
@@ -46,10 +50,6 @@ class TurnManager():
         data["seed"] = self.seed
         data["combats"] = [c.save() for c in self.combats]
         return data
-
-    # Step 2 of turn
-    def RandomizeTeamActionOrder(self):
-        self.teams = static_random.shuffle(self.teams)
 
     def LoadCharacterData(self, char_data: dict):
         char_dict = {}
@@ -114,6 +114,9 @@ class TurnManager():
         for team in self.teams:
             if len(team) == 0:
                 self.teams.remove(team)
+
+    def RemainingPlayers(self):
+        return len(self.characters)
 
 turn = TurnManager()
 

@@ -166,3 +166,10 @@ class Character:
         if injurable_bodyparts:
             static_random.shuffle(injurable_bodyparts)
             self.body[injurable_bodyparts[0]] += 1
+
+    def is_healthy(self):
+        return True if all([self.body[p] == 0 for p in self.body]) else False
+    
+    def heal(self):
+        part_to_heal = static_random.shuffle([p for p in self.body if self.body[p] > 0])[0]
+        self.body[part_to_heal] -= 1

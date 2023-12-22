@@ -2,9 +2,9 @@ from Managers.objects.combatoutput import CombatOutput
 from Managers.objects.skills import Skill
 from Managers.objects.team import Team
 from utilities import static_random
-from helper_functions import CharacterFunctions
+from Managers.helper_functions import CharacterFunctions
 
-class CombatManager():
+class CombatAction():
     def __init__(self, team1, team2) -> None:
         self.team1 = team1
         self.team2 = team2
