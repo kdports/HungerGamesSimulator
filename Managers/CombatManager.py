@@ -1,3 +1,5 @@
+from Managers.objects.combatoutput import CombatOutput
+from Managers.objects.skills import Skill
 from Managers.objects.team import Team
 from utilities import static_random
 from helper_functions import CharacterFunctions
@@ -6,6 +8,7 @@ class CombatManager():
     def __init__(self, team1, team2) -> None:
         self.team1 = team1
         self.team2 = team2
+        self.outcome = CombatOutput()
 
     def escape_success_chance(self, escaping_team, pursuing_team):
         base_chance = 50 # %
@@ -57,7 +60,7 @@ class CombatManager():
     Each person on a team makes an individual roll. Highest team roll is taken
     All a bit placeholder
     '''
-    def solve_combat(self):
+    def solve_combat(self) -> CombatOutput:
         team1_wins = 0
         team2_wins = 0
 
@@ -67,12 +70,10 @@ class CombatManager():
             
             team1_try_flee, team2_try_flee = self.check_team_retreat(self.team1, self.team2)
             if team1_try_flee and team2_try_flee:
-                self.combat_inconclusive(self.team1, self.team2)
-                return 
+                return self.combat_inconclusive(self.team1, self.team2)
             elif (team1_try_flee and self.check_successful_escape(self.team1, self.team2)) or \
                     (team2_try_flee and self.check_successful_escape(self.team2, self.team1)):
-                self.combat_inconclusive(self.team1, self.team2)
-                return
+                return self.combat_inconclusive(self.team1, self.team2)
 
             team1_rolls = [static_random.get_combat() + char.combat_bonus() for char in self.team1]
             team1_best = max(team1_rolls)
@@ -80,11 +81,12 @@ class CombatManager():
             team2_rolls = [static_random.get_combat() + char.combat_bonus() for char in self.team2]
             team2_best = max(team2_rolls)
 
-            # TODO: Should we apply injuries as the combat progresses? Or at the end?
             if team1_best > team2_best:
                 team1_wins += 1
+                self.calculate_injuries(self.team2)
             elif team1_best < team2_best:
                 team2_wins += 1
+                self.calculate_injuries(self.team1)
 
         if team1_wins > team2_wins:
             winner = self.team1
@@ -94,12 +96,28 @@ class CombatManager():
             loser = self.team1
 
         # If we reach this point, there has been a winner and loser
-        self.combat_decided(winner, loser)
+        return self.combat_decided(winner, loser)
 
-    def combat_decided(self, winner, loser):
-        # Write text here
-        pass
+    def calculate_injuries(self, team):
+        BASE_INJURY_CHANCE = 30
+        for char in team:
+            avg_combat_survival = (char.get_skill(Skill.CombatSkill) + char.get_skill(Skill.SurvivalSkill)) // 2
+            if static_random.get_randint(0, 99) < \
+                    BASE_INJURY_CHANCE / (avg_combat_survival + 1):
+                char.get_injured()
+                self.outcome.add_injury(char, static_random.shuffle(team.players)[0])
 
-    def combat_inconclusive(self, team1, team2):
-        # Write text here
-        pass
+    def combat_decided(self, winner, loser) -> CombatOutput:
+        for char in loser:
+            BASE_FINAL_ESCAPE_CHANCE = 5
+            if static_random.get_randint(0, 99) < BASE_FINAL_ESCAPE_CHANCE * char.get_skill(Skill.SurvivalSkill):
+                # They manage to escape in the last moment
+                self.outcome.add_escape(char)
+            else:
+                # They die
+                killer = static_random.shuffle(winner.players)[0]
+                self.outcome.add_death(char, killer)
+        return self.outcome
+
+    def combat_inconclusive(self, team1, team2) -> CombatOutput:
+        return self.outcome

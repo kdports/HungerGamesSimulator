@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from Managers.objects.team import Team
+    from Managers.objects.combatoutput import CombatOutput
 
 class TurnManager():
     def __init__(self) -> None:
@@ -16,6 +17,7 @@ class TurnManager():
         self.items: Dict[str, Item] = {}
         self.teams: List[Team] = []
         self.seed = 0
+        self.combats: List[CombatOutput] = []
         # TODO: Make this actually do something
         self.modifiers = []
 
@@ -33,12 +35,16 @@ class TurnManager():
         self.teams = data.get("teams", [])
         self.seed = data.get("seed", 0)
 
+        # We don't load combat outputs from last turn because we don't care
+
     def SaveJSONData(self):
         data = {}
         data["board"] = self.board
-        data["characters"] = self.characters
-        data["items"] = self.items
+        data["characters"] = [self.characters[ch].save() for ch in self.characters]
+        data["items"] = [self.items[i].save() for i in self.items]
+        data["teams"] = [t.save() for t in self.teams]
         data["seed"] = self.seed
+        data["combats"] = [c.save() for c in self.combats]
         return data
 
     # Step 2 of turn

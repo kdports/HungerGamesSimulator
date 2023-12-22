@@ -39,7 +39,6 @@ class Team():
         return leader.get_strategy(Strategy.Aggressive)
 
     def get_escape_capability(self):
-        INCREMENT = 4
         escape_bonus = 0
         for char_nid in self.players:
             char = Managers.TurnManager.turn.GetCharacter(char_nid)
@@ -49,7 +48,6 @@ class Team():
         return escape_bonus
     
     def get_pursuit_capability(self):
-        INCREMENT = 4
         pursuit_bonus = 0
         for char_nid in self.players:
             char = Managers.TurnManager.turn.GetCharacter(char_nid)
@@ -57,3 +55,6 @@ class Team():
                 pursuit_bonus += char.get_skill(Skill.EnduranceSkill)
         pursuit_bonus /= len(self.players)
         return pursuit_bonus
+
+    def save(self):
+        return self.players

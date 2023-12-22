@@ -6,6 +6,8 @@ from Managers.objects.item import Item
 from Managers.objects.skills import Skill
 from Managers.objects.strategies import Strategy
 
+from utilities import static_random
+
 '''
 Currently Implemented Strategies:
 Friendly
@@ -150,4 +152,17 @@ class Character:
             multiplier *= self.injury_multiplier_inverter(limb)
         multiplier *= self.hunger_combat_multiplier(self.hunger_state)
         return multiplier
-        
+
+    '''
+    Can't take an injury if every body part is disabled (lol)
+    Just injures a random part of your body
+    Value of limb state enum is incremented by 1 (higher = more damaged)
+    '''
+    def get_injured(self):
+        injurable_bodyparts = []
+        for part in self.body:
+            if self.body[part] < 2:
+                injurable_bodyparts.append(part)
+        if injurable_bodyparts:
+            static_random.shuffle(injurable_bodyparts)
+            self.body[injurable_bodyparts[0]] += 1
