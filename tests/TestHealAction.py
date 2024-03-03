@@ -119,7 +119,7 @@ class HealActionUnitTests(unittest.TestCase):
         self.assertTrue(CharacterRegistry.GetCharacter("Bob").is_healthy())
 
     # Test that only one person is healed per action
-    def test_team_heal_use_highest(self):
+    def test_team_heal_one_target(self):
         CharacterRegistry.Clear()
         guaranteed_success = 100
         CharacterRegistry.AddCharacter(Character("Bob", "Bob", {"Medical Skill": guaranteed_success}))
