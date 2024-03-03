@@ -44,5 +44,46 @@ class ForageActionUnitTests(unittest.TestCase):
         bob = CharacterRegistry.GetCharacter("Bob")
         self.assertTrue(has_no_item(bob))
 
+    # Tests that when searching, the highest modifier is used
+    def test_team_total_modifier(self):
+        CharacterRegistry.Clear()
+
+        guaranteed_success = 100
+        CharacterRegistry.AddCharacter(Character("Bob", "Bob", {"Survival Skill": guaranteed_success}))
+        guaranteed_fail = -100
+        CharacterRegistry.AddCharacter(Character("Jane", "Jane", {"Survival Skill": guaranteed_fail}))
+        team = Team(["Bob", "Jane"])
+
+        action = ForageAction(team, self.all_items)
+        action.do()
+
+        bob = CharacterRegistry.GetCharacter("Bob")
+        jane = CharacterRegistry.GetCharacter("Jane")
+        self.assertTrue(has_an_item(bob) or has_an_item(jane))
+
+    # Tests that when an item is found, the person with the highest Commanding + Friendly
+    # value will get the item
+    def test_team_taker_weight(self):
+        CharacterRegistry.Clear()
+
+        guaranteed_success = 100
+        almost_guaranteed_fail = -99
+        CharacterRegistry.AddCharacter(Character("Bob", "Bob", {"Survival Skill": guaranteed_success}, \
+                                                 strategies={"Commanding": guaranteed_success, "Friendly": almost_guaranteed_fail}))
+
+        guaranteed_fail = -100
+        almost_guaranteed_success = 99
+        CharacterRegistry.AddCharacter(Character("Jane", "Jane", strategies={"Commanding": guaranteed_fail, "Friendly": almost_guaranteed_success}))
+
+        neutral = 0
+        CharacterRegistry.AddCharacter(Character("Jon", "Jon", strategies={"Commanding": neutral, "Friendly": neutral}))
+        team = Team(["Jon", "Bob", "Jane"])
+
+        action = ForageAction(team, self.all_items)
+        action.do()
+
+        bob = CharacterRegistry.GetCharacter("Bob")
+        self.assertTrue(has_an_item(bob))
+
 if __name__ == '__main__':
     unittest.main()

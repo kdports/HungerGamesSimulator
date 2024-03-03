@@ -72,6 +72,9 @@ class Team():
             if med > highest_med:
                 highest_med = med
         return highest_med
+    
+    def members(self):
+        return self.players
 
     def save(self):
         return self.players

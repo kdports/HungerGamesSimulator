@@ -64,11 +64,11 @@ class Character:
 
     def reset_body(self):
         self.body = {
-            "head": LimbHealthState.HEALTHY,
-            "torso": LimbHealthState.HEALTHY,
-            "left arm": LimbHealthState.HEALTHY,
-            "right arm": LimbHealthState.HEALTHY,
-            "legs": LimbHealthState.HEALTHY
+            "head": LimbHealthState.HEALTHY.value,
+            "torso": LimbHealthState.HEALTHY.value,
+            "left arm": LimbHealthState.HEALTHY.value,
+            "right arm": LimbHealthState.HEALTHY.value,
+            "legs": LimbHealthState.HEALTHY.value
         }
 
     def get_skill(self, skill: Skill):
@@ -162,9 +162,9 @@ class Character:
     def injury_multiplier_inverter(self, limb_state: LimbHealthState):
         INJURED_EFFECT = 0.66
         DISABLED_EFFECT = 0.33
-        if limb_state == LimbHealthState.HEALTHY:
+        if limb_state == LimbHealthState.HEALTHY.value:
             return 1
-        elif limb_state == LimbHealthState.INJURED:
+        elif limb_state == LimbHealthState.INJURED.value:
             return INJURED_EFFECT
         return DISABLED_EFFECT
     
