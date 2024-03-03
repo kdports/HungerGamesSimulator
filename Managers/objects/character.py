@@ -8,6 +8,9 @@ from Managers.objects.strategies import Strategy
 
 from utilities import static_random
 
+
+# TODO: Have each character decide at the start of the turn if they will betray this turn. Work off that, have them be autoexcluded from checks.
+
 '''
 Currently Implemented Strategies:
 Friendly
@@ -37,12 +40,12 @@ class HungerState(Enum):
     DEAD = 4
 
 class Character:
-    def __init__(self) -> None:
-        self.nid = ""
-        self.name = ""
-        self.skills = {}
-        self.alliances = []
-        self.strategies = {}
+    def __init__(self, nid="", name="", skills={}, alliances=[], strategies={}) -> None:
+        self.nid = nid
+        self.name = name
+        self.skills = skills
+        self.alliances = alliances
+        self.strategies = strategies
 
         self.dead = False
 
@@ -112,12 +115,42 @@ class Character:
     Outta get called whenever someone gets an item
     '''
     def equip_item(self, item: Item):
+        if item.hands_needed == 0:
+            return False
+        if item.hands_needed == 2:
+            right_hand_modifier = 0 if not self.right_hand_weapon else self.right_hand_weapon.get_combat_modifier()
+            left_hand_modifier = 0 if not self.right_hand_weapon else self.right_hand_weapon.get_combat_modifier()
+            if item.combat_modifier > right_hand_modifier + left_hand_modifier:
+                self.right_hand_weapon = item
+                self.left_hand_weapon = Item()
+                self.weapons.append(item)
+                return 
         if not self.left_hand_weapon or self.left_hand_weapon.get_combat_modifier() < item.get_combat_modifier():
             self.left_hand_weapon = item
+            self.weapons.append(item)
             return
         if not self.right_hand_weapon or self.right_hand_weapon.get_combat_modifier() < item.get_combat_modifier():
             self.right_hand_weapon = item
+            self.weapons.append(item)
             return
+
+    def wants_to_equip(self, item: Item):
+        if item.hands_needed == 0:
+            return False
+        elif item.hands_needed == 2:
+            right_hand_modifier = 0 if not self.right_hand_weapon else self.right_hand_weapon.get_combat_modifier()
+            left_hand_modifier = 0 if not self.right_hand_weapon else self.right_hand_weapon.get_combat_modifier()
+            if item.combat_modifier > right_hand_modifier + left_hand_modifier:
+                return True
+        elif (not self.left_hand_weapon or self.left_hand_weapon.get_combat_modifier() < item.get_combat_modifier()) \
+                or (not self.right_hand_weapon or self.right_hand_weapon.get_combat_modifier() < item.get_combat_modifier()):
+            return True
+        
+    def give_item(self, item: Item):
+        if item.is_food:
+            self.food.append(item.nid)
+        if item.is_medicine:
+            self.medicine.append(item.nid)
     
     def combat_bonus(self):
         combat_skill = self.skills.get(Skill.CombatSkill, 0)

@@ -1,6 +1,8 @@
 from typing import List, Dict
 from Managers.objects.character import Character
 from Managers.objects.item import Item
+from Registries.CharacterRegistry import CharacterRegistry
+from Registries.ItemRegistry import ItemRegistry
 from utilities import static_random
 from Managers.helper_functions import CharacterFunctions
 
@@ -13,8 +15,6 @@ if TYPE_CHECKING:
 class TurnManager():
     def __init__(self) -> None:
         self.board = []
-        self.characters: Dict[str, Character] = {}
-        self.items: Dict[str, Item] = {}
         self.teams: List[Team] = []
         self.seed = 0
         self.combats: List[CombatOutput] = []
@@ -34,8 +34,8 @@ class TurnManager():
 
     def LoadJSONData(self, data: dict):
         self.board = data.get("board", [])
-        self.characters = self.LoadCharacterData(data["characters"])
-        self.items = self.LoadItemData(data["items"])
+        self.LoadCharacterData(data["characters"])
+        self.LoadItemData(data["items"])
         self.teams = data.get("teams", [])
         self.seed = data.get("seed", 0)
 
@@ -44,28 +44,25 @@ class TurnManager():
     def SaveJSONData(self):
         data = {}
         data["board"] = self.board
-        data["characters"] = [self.characters[ch].save() for ch in self.characters]
-        data["items"] = [self.items[i].save() for i in self.items]
+        data["characters"] = [CharacterRegistry.GetCharacter(ch).save() for ch in CharacterRegistry.characters]
+        data["items"] = [ItemRegistry.GetItem(i).save() for i in ItemRegistry.items]
         data["teams"] = [t.save() for t in self.teams]
         data["seed"] = self.seed
         data["combats"] = [c.save() for c in self.combats]
         return data
 
     def LoadCharacterData(self, char_data: dict):
-        char_dict = {}
+        # Loads into the CharacterRegistry holder
         for char_nid in char_data.keys():
             new_character = Character()
             new_character.load_json_object(char_data[char_nid])
-            char_dict[new_character.nid] = new_character
-        return char_dict
+            CharacterRegistry.AddCharacter(new_character)
 
     def LoadItemData(self, item_data: dict):
-        item_dict = {}
         for item_nid in item_data.keys():
             new_item = Item()
             new_item.load_json_object(item_data[item_nid])
-            item_dict[new_item.nid] = new_item
-        return item_dict
+            ItemRegistry.AddItem(new_item)
 
     def IsCharacterInTeam(self, char_nid):
         for team in self.teams:
@@ -74,21 +71,21 @@ class TurnManager():
         return False
 
     def GetCharacter(self, char_nid):
-        return self.characters[char_nid]
+        return CharacterRegistry.GetCharacter(char_nid)
 
     def CalculateTrueAllies(self):
-        for char_nid in self.characters:
+        for char_nid in CharacterRegistry.characters:
             char = self.GetCharacter(char_nid)
             true_allies = []
             for prospective_ally_nid in char.get_alliances():
-                if char.nid in self.characters[prospective_ally_nid].get_alliances():
+                if char.nid in CharacterRegistry.characters[prospective_ally_nid].get_alliances():
                     true_allies.append(prospective_ally_nid)
             char.set_alliances(true_allies)
 
     def BuildAlliances(self):
         self.CalculateTrueAllies()
 
-        for char_nid in self.characters:
+        for char_nid in CharacterRegistry.characters:
             char = self.GetCharacter(char_nid)
             # You can't be in multiple teams
             if self.IsCharacterInTeam(char_nid):
@@ -101,7 +98,7 @@ class TurnManager():
             self.PurgeEmptyTeams()
 
     def MakeSinglePersonTeams(self):
-        for char_nid in self.characters:
+        for char_nid in CharacterRegistry.characters:
             if not self.IsCharacterInTeam(char_nid):
                 self.teams.append(CharacterFunctions.MakeSinglePersonTeam(char_nid))
 
@@ -116,7 +113,7 @@ class TurnManager():
                 self.teams.remove(team)
 
     def RemainingPlayers(self):
-        return len(self.characters)
+        return len(CharacterRegistry.characters)
 
 turn = TurnManager()
 

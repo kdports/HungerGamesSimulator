@@ -1,10 +1,11 @@
+from Actions.GameAction import GameAction
 from Managers.objects.combatoutput import CombatOutput
 from Managers.objects.skills import Skill
 from Managers.objects.team import Team
 from utilities import static_random
 from Managers.helper_functions import CharacterFunctions
 
-class CombatAction():
+class CombatAction(GameAction):
     def __init__(self, team1, team2) -> None:
         self.team1 = team1
         self.team2 = team2
@@ -121,3 +122,6 @@ class CombatAction():
 
     def combat_inconclusive(self, team1, team2) -> CombatOutput:
         return self.outcome
+
+    def do(self):
+        self.solve_combat()

@@ -2,11 +2,11 @@ from typing import List
 from Managers.objects.character import Character
 from Managers.objects.skills import Skill
 from Managers.objects.strategies import Strategy
-import Managers.TurnManager 
+from Registries.CharacterRegistry import CharacterRegistry 
 from utilities import static_random
 
 class Team():
-    def __init__(self, players) -> None:
+    def __init__(self, players: List[str]) -> None:
         # List of character nids
         self.players: List[str] = players
 
@@ -31,7 +31,7 @@ class Team():
         highest_leadership = -99
         leader: Character = None
         for char_nid in self.players:
-            char = Managers.TurnManager.turn.GetCharacter(char_nid)
+            char = CharacterRegistry.GetCharacter(char_nid)
             if char.get_strategy(Strategy.Commanding) > highest_leadership:
                 leader = char
             elif char.get_strategy(Strategy.Commanding) == highest_leadership and static_random.fiftyfifty():
@@ -41,7 +41,7 @@ class Team():
     def get_escape_capability(self):
         escape_bonus = 0
         for char_nid in self.players:
-            char = Managers.TurnManager.turn.GetCharacter(char_nid)
+            char = CharacterRegistry.GetCharacter(char_nid)
             if char.injury_multiplier() == 1:
                 escape_bonus += char.get_skill(Skill.SurvivalSkill)
         escape_bonus /= len(self.players)
@@ -50,11 +50,28 @@ class Team():
     def get_pursuit_capability(self):
         pursuit_bonus = 0
         for char_nid in self.players:
-            char = Managers.TurnManager.turn.GetCharacter(char_nid)
+            char = CharacterRegistry.GetCharacter(char_nid)
             if char.injury_multiplier() == 1:
                 pursuit_bonus += char.get_skill(Skill.EnduranceSkill)
         pursuit_bonus /= len(self.players)
         return pursuit_bonus
+    
+    def get_highest_survival_skill(self) -> int:
+        highest_survival = 0
+        for char_nid in self.players:
+            char = CharacterRegistry.GetCharacter(char_nid)
+            med = char.get_skill(Skill.SurvivalSkill)
+            if med > highest_survival:
+                highest_survival = med
+        return highest_survival
+
+    def get_highest_medical_skill(self) -> int:
+        highest_med = 0
+        for char in self.players:
+            med = CharacterRegistry.GetCharacter(char).get_skill(Skill.MedicalSkill)
+            if med > highest_med:
+                highest_med = med
+        return highest_med
 
     def save(self):
         return self.players
