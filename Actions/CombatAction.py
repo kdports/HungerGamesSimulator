@@ -2,6 +2,7 @@ from Actions.GameAction import GameAction
 from Managers.objects.combatoutput import CombatOutput
 from Managers.objects.skills import Skill
 from Managers.objects.team import Team
+from Registries.CharacterRegistry import CharacterRegistry
 from utilities import static_random
 from Managers.helper_functions import CharacterFunctions
 
@@ -13,11 +14,13 @@ class CombatAction(GameAction):
 
     def escape_success_chance(self, escaping_team, pursuing_team):
         base_chance = 50 # %
-        for char in escaping_team:
+        for char_nid in escaping_team.members():
+            char = CharacterRegistry.GetCharacter(char_nid)
             # 1 is injured, 2 is disabled
             if char.body["legs"] > 0:
                 base_chance = base_chance//2
-        for char in pursuing_team:
+        for char_nid in pursuing_team.members():
+            char = CharacterRegistry.GetCharacter(char_nid)
             if char.body["legs"] > 0:
                 base_chance = base_chance*2
         return base_chance
@@ -124,4 +127,5 @@ class CombatAction(GameAction):
         return self.outcome
 
     def do(self):
-        self.solve_combat()
+        outcome = self.solve_combat()
+        # Write outcome to a registry or something
