@@ -6,6 +6,7 @@ from Managers.objects.character import Character
 from Managers.objects.item import Item
 from Managers.objects.team import Team
 from Registries.CharacterRegistry import CharacterRegistry
+from utilities import static_random
 
 def has_an_item(char: Character):
     return len(char.weapons) > 0 or len(char.food) > 0 or len(char.medicine) > 0
@@ -36,12 +37,14 @@ class ForageActionUnitTests(unittest.TestCase):
     def test_single_member_team_failure(self):
         CharacterRegistry.Clear()
         guaranteed_fail = -100
-        CharacterRegistry.AddCharacter(Character("Bob", "Bob", {"Survival Skill": guaranteed_fail}))
+        bob = Character("Bob", "Bob", {"Survival Skill": guaranteed_fail})
+        CharacterRegistry.AddCharacter(bob)
         team = Team(["Bob"])
+
+        static_random.set_seed(1) # This seed guarantees a high roll
         action = ForageAction(team, self.all_items)
         action.do()
 
-        bob = CharacterRegistry.GetCharacter("Bob")
         self.assertTrue(has_no_item(bob))
 
     # Tests that when searching, the highest modifier is used

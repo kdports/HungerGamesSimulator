@@ -17,11 +17,11 @@ class CombatAction(GameAction):
         for char_nid in escaping_team.members():
             char = CharacterRegistry.GetCharacter(char_nid)
             # 1 is injured, 2 is disabled
-            if char.body["legs"] > 0:
+            if char.body.parts()["legs"] > 0:
                 base_chance = base_chance//2
         for char_nid in pursuing_team.members():
             char = CharacterRegistry.GetCharacter(char_nid)
-            if char.body["legs"] > 0:
+            if char.body.parts()["legs"] > 0:
                 base_chance = base_chance*2
         return base_chance
 
@@ -104,7 +104,8 @@ class CombatAction(GameAction):
 
     def calculate_injuries(self, team):
         BASE_INJURY_CHANCE = 30
-        for char in team:
+        for char_nid in team.members():
+            char = CharacterRegistry.GetCharacter(char_nid)
             avg_combat_survival = (char.get_skill(Skill.CombatSkill) + char.get_skill(Skill.SurvivalSkill)) // 2
             if static_random.get_randint(0, 99) < \
                     BASE_INJURY_CHANCE / (avg_combat_survival + 1):

@@ -2,6 +2,7 @@ from typing import List
 from Managers.objects.character import Character
 from Managers.objects.strategies import Strategy
 from Managers.objects.team import Team
+from Registries.CharacterRegistry import CharacterRegistry
 from utilities import static_random
 
 '''
@@ -11,18 +12,20 @@ def CompareTeams(team1: Team, team2: Team):
     team1_sum = 0
     team2_sum = 0
 
-    for char1 in team1:
+    for char1_nid in team1.members():
+        char1 = CharacterRegistry.GetCharacter(char1_nid)
         team1_sum += GetCharacterCombatRating(char1)
 
-    for char2 in team2:
+    for char2_nid in team2.members():
+        char2 = CharacterRegistry.GetCharacter(char2_nid)
         team2_sum += GetCharacterCombatRating(char2)
 
     return team1_sum - team2_sum
 
 def ResolveCharacterEnteringTeam(char: Character, team: Team):
     num_friends = 0
-    for other_char in team:
-        if other_char.nid in char.get_alliances():
+    for other_char in team.members():
+        if other_char in char.get_alliances():
             num_friends += 1
 
     if num_friends == 0:

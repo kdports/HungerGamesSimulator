@@ -38,7 +38,7 @@ class CombatOutput():
         result = Result(victim, attacker)
         self.info_dict["Deaths"].append(result)
 
-    def add_injury(self, victim: Character, attacker: Character, body_part: str):
+    def add_injury(self, victim: Character, attacker: Character, body_part: str=None):
         result = Result(victim, attacker, body_part)
         self.info_dict["Injuries"].append(result)
 

@@ -2,6 +2,7 @@ from enum import Enum
 import json
 from typing import List
 
+from Managers.objects.body import Body, LimbHealthState
 from Managers.objects.item import Item
 from Managers.objects.skills import Skill
 from Managers.objects.strategies import Strategy
@@ -26,11 +27,6 @@ Medical Skill
 Survival Skill
 Endurance Skill
 '''
-
-class LimbHealthState(Enum):
-    HEALTHY = 0
-    INJURED = 1
-    DISABLED = 2
 
 class HungerState(Enum):
     FULL = 0,
@@ -63,13 +59,7 @@ class Character:
         self.right_hand_weapon: Item = None
 
     def reset_body(self):
-        self.body = {
-            "head": LimbHealthState.HEALTHY.value,
-            "torso": LimbHealthState.HEALTHY.value,
-            "left arm": LimbHealthState.HEALTHY.value,
-            "right arm": LimbHealthState.HEALTHY.value,
-            "legs": LimbHealthState.HEALTHY.value
-        }
+        self.body = Body()
 
     def get_skill(self, skill: Skill):
         return self.skills.get(skill.value, 0)
@@ -154,8 +144,8 @@ class Character:
     
     def combat_bonus(self):
         combat_skill = self.skills.get(Skill.CombatSkill, 0)
-        combat_skill += self.left_hand_weapon.get_combat_modifier()
-        combat_skill += self.right_hand_weapon.get_combat_modifier()
+        combat_skill += 0 if not self.left_hand_weapon else self.left_hand_weapon.get_combat_modifier()
+        combat_skill += 0 if not self.right_hand_weapon else self.right_hand_weapon.get_combat_modifier()
         combat_skill *= self.injury_multiplier()
         return combat_skill
     
@@ -168,12 +158,12 @@ class Character:
             return INJURED_EFFECT
         return DISABLED_EFFECT
     
-    def hunger_combat_multiplier(self, hunger_state: HungerState):
+    def hunger_combat_multiplier(self, hunger_state: HungerState) -> int:
         MULTIPLIER = 1/3
         return max(1 - (max(self.endurance_hunger_effect(hunger_state) - 1, 0) * MULTIPLIER), 0)
     
-    def endurance_hunger_effect(self, hunger_state: HungerState) -> HungerState:
-        return max(0, hunger_state - self.get_skill(Skill.EnduranceSkill))
+    def endurance_hunger_effect(self, hunger_state: HungerState) -> int:
+        return max(0, hunger_state.value[0] - self.get_skill(Skill.EnduranceSkill))
 
     '''
     Injuries decrease
@@ -181,7 +171,7 @@ class Character:
     '''
     def injury_multiplier(self):
         multiplier = 1
-        for limb in self.body:
+        for limb in self.body.parts():
             multiplier *= self.injury_multiplier_inverter(limb)
         multiplier *= self.hunger_combat_multiplier(self.hunger_state)
         return multiplier
@@ -193,16 +183,16 @@ class Character:
     '''
     def get_injured(self):
         injurable_bodyparts = []
-        for part in self.body:
-            if self.body[part] < 2:
+        for part in self.body.parts():
+            if self.body.parts()[part] < 2:
                 injurable_bodyparts.append(part)
         if injurable_bodyparts:
             static_random.shuffle(injurable_bodyparts)
-            self.body[injurable_bodyparts[0]] += 1
+            self.body.parts()[injurable_bodyparts[0]] += 1
 
     def is_healthy(self):
-        return True if all([self.body[p] == 0 for p in self.body]) else False
+        return True if all([self.body.parts()[p] == 0 for p in self.body.parts()]) else False
     
     def heal(self):
-        part_to_heal = static_random.shuffle([p for p in self.body if self.body[p] > 0])[0]
-        self.body[part_to_heal] -= 1
+        part_to_heal = static_random.shuffle([p for p in self.body.parts() if self.body.parts()[p] > 0])[0]
+        self.body.parts()[part_to_heal] -= 1
