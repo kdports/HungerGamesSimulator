@@ -95,3 +95,18 @@ class CombatActionUnitTests(unittest.TestCase):
         action = CombatAction(bob_team, bob_team)
         action.calculate_injuries(bob_team)
         self.assertFalse(bob.is_healthy())
+        
+    def test_add_bonus(self):
+        bob = Character("Bob", "Bob")
+        CharacterRegistry.AddCharacter(bob)
+        bob_team = Team([bob.nid])
+
+        jane = Character("Jane", "Jane")
+        CharacterRegistry.AddCharacter(jane)
+        jane_team = Team([jane.nid])
+
+        action = CombatAction(bob_team, jane_team)
+        action.add_bonus(bob_team, 1)
+        self.assertTrue(action.team1_bonus == 1 and action.team2_bonus == 0)
+        action.add_bonus(jane_team, 1)
+        self.assertTrue(action.team1_bonus == 1 and action.team2_bonus == 1)

@@ -9,6 +9,8 @@ class Team():
     def __init__(self, players: List[str]) -> None:
         # List of character nids
         self.players: List[str] = players
+        self.action_decided = False
+        self.action = None
 
     def add_player(self, nid: str):
         if nid not in self.players:
@@ -78,3 +80,22 @@ class Team():
 
     def save(self):
         return self.players
+    
+    def any_injuries(self) -> bool:
+        return any([not CharacterRegistry.GetCharacter(char_nid).is_healthy() for char_nid in self.players])
+
+    def decide_action(self, potential_targets: list):
+        if self.action_decided:
+            return
+        if len(potential_targets) > 0:
+            BASE_COMBAT_CHANCE = 33
+            INCREMENT = 9
+            HIGH_AGGRESSION = 7
+            aggression = self.get_team_aggression() if len(potential_targets) > 2 else HIGH_AGGRESSION
+            combat_chance = BASE_COMBAT_CHANCE + (INCREMENT * aggression)
+            hide_chance = (100 - combat_chance) // 2 if self.any_injuries() else 0
+            forage_chance = 100 - combat_chance - hide_chance
+        else:
+            combat_chance = 0
+            hide_chance = 50 if self.any_injuries() else 0
+            forage_chance = 100 - combat_chance - hide_chance

@@ -32,6 +32,11 @@ class TurnManager():
     def RandomizeTeamActionOrder(self):
         self.teams = static_random.shuffle(self.teams)
 
+    # Step 3 of turn
+    def ChooseActions(self):
+        for team in self.teams:
+            pass
+
     def LoadJSONData(self, data: dict):
         self.board = data.get("board", [])
         self.LoadCharacterData(data["characters"])

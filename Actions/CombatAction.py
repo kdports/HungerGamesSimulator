@@ -3,6 +3,7 @@ from Managers.objects.combatoutput import CombatOutput
 from Managers.objects.skills import Skill
 from Managers.objects.team import Team
 from Registries.CharacterRegistry import CharacterRegistry
+from Registries.OutcomeRegistry import OutcomeRegistry
 from utilities import static_random
 from Managers.helper_functions import CharacterFunctions
 
@@ -11,6 +12,15 @@ class CombatAction(GameAction):
         self.team1 = team1
         self.team2 = team2
         self.outcome = CombatOutput()
+
+        self.team1_bonus = 0
+        self.team2_bonus = 0
+
+    def add_bonus(self, team: Team, bonus: int) -> None:
+        if team == self.team1:
+            self.team1_bonus += bonus
+        else:
+            self.team2_bonus += bonus
 
     def escape_success_chance(self, escaping_team, pursuing_team):
         base_chance = 50 # %
@@ -79,10 +89,10 @@ class CombatAction(GameAction):
                     (team2_try_flee and self.check_successful_escape(self.team2, self.team1)):
                 return self.combat_inconclusive(self.team1, self.team2)
 
-            team1_rolls = [static_random.get_combat() + char.combat_bonus() for char in self.team1]
+            team1_rolls = [static_random.get_combat() + self.team1_bonus + CharacterRegistry.GetCharacter(char).combat_bonus() for char in self.team1]
             team1_best = max(team1_rolls)
 
-            team2_rolls = [static_random.get_combat() + char.combat_bonus() for char in self.team2]
+            team2_rolls = [static_random.get_combat() + self.team2_bonus + CharacterRegistry.GetCharacter(char).combat_bonus() for char in self.team2]
             team2_best = max(team2_rolls)
 
             if team1_best > team2_best:
@@ -112,8 +122,9 @@ class CombatAction(GameAction):
                 char.get_injured()
                 self.outcome.add_injury(char, static_random.shuffle(team.players)[0])
 
-    def combat_decided(self, winner, loser) -> CombatOutput:
-        for char in loser:
+    def combat_decided(self, winner: Team, loser: Team) -> CombatOutput:
+        for char_nid in loser.members():
+            char = CharacterRegistry.GetCharacter(char_nid)
             BASE_FINAL_ESCAPE_CHANCE = 5
             if static_random.get_randint(0, 99) < BASE_FINAL_ESCAPE_CHANCE * char.get_skill(Skill.SurvivalSkill):
                 # They manage to escape in the last moment
@@ -129,4 +140,4 @@ class CombatAction(GameAction):
 
     def do(self):
         outcome = self.solve_combat()
-        # Write outcome to a registry or something
+        OutcomeRegistry.AddOutcome(outcome)
