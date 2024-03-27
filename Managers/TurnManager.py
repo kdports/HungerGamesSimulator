@@ -1,4 +1,9 @@
+from logging.config import valid_ident
 from typing import List, Dict
+from Actions.ActionEnum import Actions
+from Actions.CombatAction import CombatAction
+from Actions.ForageAction import ForageAction
+from Actions.HideAction import HideAction
 from Managers.objects.character import Character
 from Managers.objects.item import Item
 from Registries.CharacterRegistry import CharacterRegistry
@@ -11,6 +16,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from Managers.objects.team import Team
     from Managers.objects.combatoutput import CombatOutput
+    from Actions.GameAction import GameAction
 
 class TurnManager():
     def __init__(self) -> None:
@@ -18,6 +24,7 @@ class TurnManager():
         self.teams: List[Team] = []
         self.seed = 0
         self.combats: List[CombatOutput] = []
+        self.action_list: List[GameAction] = []
         # TODO: Make this actually do something
         self.modifiers = []
 
@@ -34,8 +41,62 @@ class TurnManager():
 
     # Step 3 of turn
     def ChooseActions(self):
+        self.ConsiderOneRemainingTeam()
         for team in self.teams:
-            pass
+            self.DecideBetrayals(team)
+            team.decide_action([t for t in self.teams if t != team])
+        self.DoTargeting()
+
+    # Find targets for each combat action
+    def DoTargeting(self):
+        #TODO: Thoughts
+        """We need a way to keep track of valid targets who aren't the 
+        combat initiator nor already in a combat. If a hiding target is
+        chosen, there should be a dice roll to see if they're found.
+        All combats should be added to action_list first, then the 
+        other actions."""
+
+    # Each character decides if they will betray
+    def DecideBetrayals(self, team: Team):
+        for char_nid in team.members():
+            char = CharacterRegistry.GetCharacter(char_nid)
+            betrayal_chance = char.base_betrayal_chance()
+            # more likely to betray if there's no greater threat
+            if len(team.members()) > CharacterRegistry.Size() // 2:
+                betrayal_chance += 15
+            char.will_betray = True if static_random.get_randint(0, 99) < betrayal_chance else False
+
+    # Different effects depending on the team action
+    def PlanBetrayals(self, char: Character, team: Team):
+        action = team.action
+        for char_nid in team:
+            char = CharacterRegistry.GetCharacter(char_nid)
+            if char.will_betray:
+                # TODO
+                # If Forage Action, betrayer stays part of team 
+                # and takes a forage action that only benefits themselves
+                if action == Actions.Forage:
+                    pass
+                # If Hide Action, betrayer will only heal themselves
+                if action == Actions.Hide:
+                    pass
+                # If Combat Action, betrayer splits from party immediately
+                # and does not assist
+                if action == Actions.Combat:
+                    pass
+        
+    '''
+    DOES NOT HANDLE the case where there is
+    one team of one person. Assume that's checked
+    elsewhere
+    '''
+    def ConsiderOneRemainingTeam(self):
+        if len(self.teams) == 1:
+            new_teams = []
+            for char_nid in self.teams[0].members():
+                char = CharacterRegistry.GetCharacter(char_nid)
+                new_teams.append(Team([char]))
+            self.teams = new_teams
 
     def LoadJSONData(self, data: dict):
         self.board = data.get("board", [])
@@ -43,7 +104,6 @@ class TurnManager():
         self.LoadItemData(data["items"])
         self.teams = data.get("teams", [])
         self.seed = data.get("seed", 0)
-
         # We don't load combat outputs from last turn because we don't care
 
     def SaveJSONData(self):
@@ -53,6 +113,7 @@ class TurnManager():
         data["items"] = [ItemRegistry.GetItem(i).save() for i in ItemRegistry.items]
         data["teams"] = [t.save() for t in self.teams]
         data["seed"] = self.seed
+        # we save combat outputs purely for human review
         data["combats"] = [c.save() for c in self.combats]
         return data
 

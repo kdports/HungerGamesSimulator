@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 class ForageAction(GameAction):
     def __init__(self, team: Team, available_items: list) -> None:
-        self.team = team
+        super().__init__(team)
         # The list of all items that could be pulled.
         self.available_items = available_items
 

@@ -58,6 +58,9 @@ class Character:
         self.left_hand_weapon: Item = None
         self.right_hand_weapon: Item = None
 
+        # Will betray - for each action, if this member var is true, that character takes a betray action instead
+        self.will_betray = False
+
     def reset_body(self):
         self.body = Body()
 
@@ -100,6 +103,27 @@ class Character:
             "strategies": self.strategies
         }
         return save_dict
+    
+    '''
+    Returns int %
+    Trustworthy strategy is modified via the following table
+    Strategy Value | Betrayal Additional Chance
+    -3             | +90
+    -2             | +60
+    -1             | +30
+    0              | 0
+    1              | -30
+    2              | -60
+    3              | -90
+    '''
+    def base_betrayal_chance(self) -> int:
+        SCALING = -30
+        betrayal_chance = 5
+        trustworthy_mod = self.get_strategy(Strategy.Trustworthy) * SCALING
+        betrayal_chance += trustworthy_mod
+        injury_mod = 1/2
+        betrayal_chance = betrayal_chance * injury_mod if not self.is_healthy() and betrayal_chance > 0 else 0
+        return betrayal_chance
     
     '''
     Outta get called whenever someone gets an item

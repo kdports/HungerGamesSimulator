@@ -20,3 +20,7 @@ class CharacterRegistry():
     @staticmethod
     def Clear():
         return CharacterRegistry.characters.clear()
+    
+    @staticmethod
+    def Size():
+        return len(CharacterRegistry.characters)

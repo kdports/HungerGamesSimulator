@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 class HideAction(GameAction):
     def __init__(self, team) -> None:
-        self.team: Team = team
+        super().__init__(team)
 
     def get_injured_teammates(self) -> List[Character]:
         injured_teammates = []

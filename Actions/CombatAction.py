@@ -1,14 +1,15 @@
 from Actions.GameAction import GameAction
 from Managers.objects.combatoutput import CombatOutput
 from Managers.objects.skills import Skill
-from Managers.objects.team import Team
 from Registries.CharacterRegistry import CharacterRegistry
 from Registries.OutcomeRegistry import OutcomeRegistry
 from utilities import static_random
 from Managers.helper_functions import CharacterFunctions
+from Managers.objects.team import Team
 
 class CombatAction(GameAction):
     def __init__(self, team1, team2) -> None:
+        super().__init__(team1)
         self.team1 = team1
         self.team2 = team2
         self.outcome = CombatOutput()

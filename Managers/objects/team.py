@@ -1,4 +1,5 @@
 from typing import List
+from Actions.ActionEnum import Actions
 from Managers.objects.character import Character
 from Managers.objects.skills import Skill
 from Managers.objects.strategies import Strategy
@@ -84,7 +85,7 @@ class Team():
     def any_injuries(self) -> bool:
         return any([not CharacterRegistry.GetCharacter(char_nid).is_healthy() for char_nid in self.players])
 
-    def decide_action(self, potential_targets: list):
+    def decide_action(self, potential_targets: list) -> None:
         if self.action_decided:
             return
         if len(potential_targets) > 0:
@@ -99,3 +100,9 @@ class Team():
             combat_chance = 0
             hide_chance = 50 if self.any_injuries() else 0
             forage_chance = 100 - combat_chance - hide_chance
+        # We don't use actual actions here, since we still need to do combat targetting
+        choices = [Actions.Combat, Actions.Hide, Actions.Forage]
+        choices_weighted = [combat_chance, hide_chance, forage_chance]
+        outcome_idx = static_random.weighted_choice(choices_weighted)
+        self.action_decided = True
+        self.action = choices[outcome_idx]
